@@ -12,7 +12,9 @@ This framework helps you to design and create EKS clusters for different environ
 This folder contains `backend.conf` and `base.tfvars`, used to create a unique Terraform state for each cluster environment.
 Terraform backend configuration can be updated in `backend.conf` and cluster common configuration variables in `base.tfvars`
 
-* `source` folder contains main driver file `main.tf`
+* `vpc.tf` contains all VPC resources
+* `eks.tf` contains all EKS Cluster resources
+* `helm.tf` contains resources to invoke helm modules under helm folder
 * `modules` folder contains all the AWS resource modules
 * `helm` folder contains all the Helm chart modules
 * `examples` folder contains sample template files with `base.tfvars` which can be used to deploy clusters with multiple add-on options
@@ -169,7 +171,7 @@ Update `~/aws-eks-accelerator-for-terraform/live/preprod/eu-west-1/application/d
 
 ####  Step3: Update Terraform backend config file
 
-Update `~/aws-eks-accelerator-for-terraform/live/preprod/eu-west-1/application/dev/backend.conf` with your local directory path. [state.tf](source/state.tf) file contains backend config.
+Update `~/aws-eks-accelerator-for-terraform/live/preprod/eu-west-1/application/dev/backend.conf` with your local directory path. [state.tf](state.tf) file contains backend config.
 
 Local terraform state backend config variables
 
@@ -196,7 +198,7 @@ aws-mfa --assume-role  arn:aws:iam::<ACCOUNTID>:role/<IAMROLE>
 to initialize a working directory with configuration files
 
 ```shell script
-terraform -chdir=source init -backend-config ../live/preprod/eu-west-1/application/dev/backend.conf
+terraform init -backend-config /live/preprod/eu-west-1/application/dev/backend.conf
 ```
 
 
@@ -204,14 +206,14 @@ terraform -chdir=source init -backend-config ../live/preprod/eu-west-1/applicati
 to verify the resources created by this execution
 
 ```shell script
-terraform -chdir=source plan -var-file ../live/preprod/eu-west-1/application/dev/base.tfvars
+terraform plan -var-file /live/preprod/eu-west-1/application/dev/base.tfvars
 ```
 
 #### Step7: Finally, Terraform APPLY
 to create resources
 
 ```shell script
-terraform -chdir=source apply -var-file ../live/preprod/eu-west-1/application/dev/base.tfvars
+terraform apply -var-file /live/preprod/eu-west-1/application/dev/base.tfvars
 ```
 
 **Alternatively you can use Makefile to deploy by skipping Step5, Step6 and Step7**

@@ -212,6 +212,10 @@ variable "enable_kube_proxy_addon" {
 #----------------------------------------------------------
 // EKS WORKER NODES
 #----------------------------------------------------------
+variable "enable_bottlerocket" {
+  type    = string
+  default = "false"
+}
 
 variable "bottlerocket_ami" {
   type        = string
@@ -421,12 +425,6 @@ variable "fargate_fluent_bit_enable" {
   description = "Enabling fargate_fluent_bit module on eks cluster"
 }
 
-variable "opentelemetry_enable" {
-  type        = bool
-  default     = false
-  description = "Enabling opentelemetry module on eks cluster"
-}
-
 variable "ekslog_retention_in_days" {
   default     = 90
   description = "Number of days to retain log events. Default retention - 90 days."
@@ -531,6 +529,66 @@ variable "aws_for_fluent_bit_image_tag" {
 variable "aws_for_fluent_bit_helm_chart_version" {
   default     = "0.1.11"
   description = "Helm chart version for aws_for_fluent_bit"
+}
+
+variable "enable_fargate" {
+  default = false
+}
+
+variable "enable_spot_nodegroup" {
+  default = false
+}
+
+variable "enable_on_demand_nodegroup" {
+  default = false
+}
+
+variable "managed_node_groups" {
+  type    = any
+  default = {}
+}
+
+variable "create_eks" {
+  type    = bool
+  default = false
+
+}
+
+variable "enable_managed_node_groups" {
+  type    = bool
+  default = false
+}
+
+variable "map_accounts" {
+  description = "Additional AWS account numbers to add to the aws-auth configmap. "
+  type        = list(string)
+  default     = []
+}
+
+variable "map_roles" {
+  description = "Additional IAM roles to add to the aws-auth configmap."
+  type = list(object({
+    rolearn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = []
+}
+
+variable "map_users" {
+  description = "Additional IAM users to add to the aws-auth configmap. "
+  type = list(object({
+    userarn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = []
+}
+
+variable "opentelemetry_enable" {
+  type        = bool
+  default     = false
+  description = "Enabling opentelemetry module on eks cluster"
 }
 
 variable "opentelemetry_enable_standalone_collector" {

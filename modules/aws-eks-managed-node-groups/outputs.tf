@@ -16,18 +16,20 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-locals {
+output "node_groups" {
+  description = "Outputs from EKS node groups "
+  value       = aws_eks_node_group.managed_ng
+}
 
-  common_roles = [{
-    rolearn  = module.iam.eks_rbac_admin_arn
-    username = "admin"
-    groups = [
-    "system:masters"]
-    },
-    {
-      rolearn  = module.iam.eks_rbac_devs_arn
-      username = "devs"
-      groups = [
-      "default:developers"]
-  }]
+output "mg_linux_role" {
+  description = "Linux node IAM role"
+  value       = aws_iam_role.mg_linux.id
+}
+
+output "launch_template_id" {
+  value = aws_launch_template.managed_node_groups.id
+}
+
+output "launch_template_latest_version" {
+  value = aws_launch_template.managed_node_groups.latest_version
 }
