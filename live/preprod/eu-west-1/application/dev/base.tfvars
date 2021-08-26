@@ -88,7 +88,7 @@ kube_proxy_addon_version = "v1.20.4-eksbuild.2"
 #---------------------------------------------------------#
 # EKS WORKER NODE GROUPS
 #---------------------------------------------------------#
-enable_managed_node_groups = true
+
 managed_node_groups = {
   mg_m5x = {
     # 1> Node Group configuration - Part1
@@ -107,7 +107,7 @@ managed_node_groups = {
     max_unavailable = 1 # or percentage = 20
 
     # 3> Node Group compute configuration
-    ami_type       = "AL2_x86_64" # AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM 
+    ami_type       = "AL2_x86_64" # AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM
     capacity_type  = "ON_DEMAND"  # ON_DEMAND or SPOT
     instance_types = ["m5.xlarge"]
     disk_size      = 50
@@ -128,93 +128,93 @@ managed_node_groups = {
       subnet_type = "private"
     }
   },
-  mng_m5 = {
-    # 1> Node Group configuration - Part1
-    node_group_name        = "mng_m5"
-    create_launch_template = true              # false will use the default launch template
-    custom_ami_type        = "amazonlinux2eks" # amazonlinux2eks or windows or bottlerocket
-    public_ip              = false             # Use this to enable public IP for EC2 instances; only for public subnets used in launch templates ;
-    pre_userdata           = <<-EOT
-          yum install -y amazon-ssm-agent
-          systemctl enable amazon-ssm-agent && systemctl start amazon-ssm-agent"
-      EOT
-    # 2> Node Group scaling configuration
-    desired_size    = 3
-    max_size        = 3
-    min_size        = 3
-    max_unavailable = 1 # or percentage = 20
-
-    # 3> Node Group compute configuration
-    ami_type       = "AL2_x86_64" # AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM or custom_ami_id = "ami-0574bb6d7d985b8f7"
-    capacity_type  = "ON_DEMAND"  # ON_DEMAND or SPOT
-    instance_types = ["m5.large"]
-    disk_size      = 50
-
-    # 4> Node Group network configuration
-    subnet_type = "private" # private or public
-    subnet_ids  = []        # Optional - It will use the default private/public subnets
-    # enable_ssh = true                           # Optional - Feature not implemented - Recommends to leverage Systems Manager
-
-    k8s_labels = {
-      Environment = "preprod"
-      Zone        = "dev"
-      WorkerType  = "ON_DEMAND"
-    }
-    additional_tags = {
-      ExtraTag    = "m5-on-demand"
-      Name        = "m5-on-demand"
-      subnet_type = "private"
-    }
-  },
+  //  mng_m5 = {
+  //    # 1> Node Group configuration - Part1
+  //    node_group_name = "mng_m5"
+  //    create_launch_template = true                 # false will use the default launch template
+  //    custom_ami_type = "amazonlinux2eks"           # amazonlinux2eks or windows or bottlerocket
+  //    public_ip = false                             # Use this to enable public IP for EC2 instances; only for public subnets used in launch templates ;
+  //    pre_userdata = <<-EOT
+  //          yum install -y amazon-ssm-agent
+  //          systemctl enable amazon-ssm-agent && systemctl start amazon-ssm-agent"
+  //      EOT
+  //    # 2> Node Group scaling configuration
+  //    desired_size = 3
+  //    max_size = 3
+  //    min_size = 3
+  //    max_unavailable = 1                           # or percentage = 20
+  //
+  //    # 3> Node Group compute configuration
+  //    ami_type = "AL2_x86_64"                       # AL2_x86_64, AL2_x86_64_GPU, AL2_ARM_64, CUSTOM or custom_ami_id = "ami-0574bb6d7d985b8f7"
+  //    capacity_type = "ON_DEMAND"                   # ON_DEMAND or SPOT
+  //    instance_types = ["m5.large"]
+  //    disk_size = 50
+  //
+  //    # 4> Node Group network configuration
+  //    subnet_type = "private"                       # private or public
+  //    subnet_ids  = []                              # Optional - It will use the default private/public subnets
+  //    # enable_ssh = true                           # Optional - Feature not implemented - Recommends to leverage Systems Manager
+  //
+  //    k8s_labels = {
+  //      Environment = "preprod"
+  //      Zone = "dev"
+  //      WorkerType = "ON_DEMAND"
+  //    }
+  //    additional_tags = {
+  //      ExtraTag = "m5-on-demand"
+  //      Name = "m5-on-demand"
+  //      subnet_type = "private"
+  //    }
+  //  },
   #---------------------------------------------------------#
   # SPOT Worker Group - Worker Group - 2
   #---------------------------------------------------------#
-  spot_m5 = {
-    # 1> Node Group configuration - Part1
-    node_group_name        = "spot_m5"
-    create_iam_role        = false             # Optional - Feature not implemented. Uses default Worker IAM role for all node groups
-    create_launch_template = true              # false will use the default launch template
-    custom_ami_type        = "amazonlinux2eks" # amazonlinux2eks or windows or bottlerocket
-    public_ip              = true              # Use this to enable public IP for EC2 instances; only for public subnets used in launch templates ;
-    pre_userdata           = <<-EOT
-          yum install -y amazon-ssm-agent
-          systemctl enable amazon-ssm-agent && systemctl start amazon-ssm-agent"
-      EOT
-
-    # Node Group scaling configuration
-    desired_size = 3
-    max_size     = 3
-    min_size     = 3
-
-    # Node Group update configuration. Set the maximum number or percentage of unavailable nodes to be tolerated during the node group version update.
-    max_unavailable = 1 # or percentage = 20
-
-    # Node Group compute configuration
-    ami_type       = "AL2_x86_64"
-    capacity_type  = "SPOT"
-    instance_types = ["t3.medium", "t3a.medium"]
-    disk_size      = 50
-
-    # Node Group network configuration
-    subnet_type = "public" # private or public
-    subnet_ids  = []       # Optional - It will pickup the default private /public subnets
-
-    k8s_taints = [{
-      key    = "dedicated"
-      value  = "gpuGroup"
-      effect = "NO_SCHEDULE"
-    }]
-    k8s_labels = {
-      Environment = "preprod"
-      Zone        = "dev"
-      WorkerType  = "SPOT"
-    }
-    additional_tags = {
-      ExtraTag    = "spot_nodes"
-      Name        = "spot"
-      subnet_type = "private"
-    }
-  },
+  //    spot_m5 = {
+  //      # 1> Node Group configuration - Part1
+  //      node_group_name = "spot_m5"
+  //      create_iam_role = false                       # Optional - Feature not implemented. Uses default Worker IAM role for all node groups
+  //      create_launch_template = true                 # false will use the default launch template
+  //      custom_ami_type = "amazonlinux2eks"           # amazonlinux2eks or windows or bottlerocket
+  //      public_ip = true                             # Use this to enable public IP for EC2 instances; only for public subnets used in launch templates ;
+  //      pre_userdata = <<-EOT
+  //          yum install -y amazon-ssm-agent
+  //          systemctl enable amazon-ssm-agent && systemctl start amazon-ssm-agent"
+  //      EOT
+  //
+  //      # Node Group scaling configuration
+  //      desired_size = 3
+  //      max_size = 3
+  //      min_size = 3
+  //
+  //      # Node Group update configuration. Set the maximum number or percentage of unavailable nodes to be tolerated during the node group version update.
+  //      max_unavailable = 1   # or percentage = 20
+  //
+  //      # Node Group compute configuration
+  //      ami_type = "AL2_x86_64"
+  //      capacity_type = "SPOT"
+  //      instance_types = ["t3.medium", "t3a.medium"]
+  //      disk_size = 50
+  //
+  //      # Node Group network configuration
+  //      subnet_type = "public"  # private or public
+  //      subnet_ids = []  # Optional - It will pickup the default private /public subnets
+  //
+  //      k8s_taints = [{
+  //        key = "dedicated"
+  //        value = "gpuGroup"
+  //        effect = "NO_SCHEDULE"
+  //      }]
+  //      k8s_labels = {
+  //        Environment = "preprod"
+  //        Zone = "dev"
+  //        WorkerType = "SPOT"
+  //      }
+  //      additional_tags = {
+  //        ExtraTag = "spot_nodes"
+  //        Name = "spot"
+  //        subnet_type = "private"
+  //      }
+  //    },
   #---------------------------------------------------------#
   # BOTTLEROCKET - Worker Group - 3
   #---------------------------------------------------------#
@@ -265,7 +265,7 @@ managed_node_groups = {
 #---------------------------------------------------------#
 # Creates a Fargate profile for default namespace
 #---------------------------------------------------------#
-enable_fargate            = true
+enable_fargate            = false
 fargate_profile_namespace = "default"
 # Enable logging only when you create a Fargate profile e.g., enable_fargate = true
 fargate_fluent_bit_enable = false
@@ -284,12 +284,12 @@ public_docker_repo = true
 # ENABLE METRICS SERVER
 #---------------------------------------------------------#
 metrics_server_enable            = true
-metric_server_image_tag          = "v0.4.2"
-metric_server_helm_chart_version = "2.12.1"
+metric_server_image_tag          = "0.5.0-debian-10-r83"
+metric_server_helm_chart_version = "5.9.2"
 #---------------------------------------------------------#
 # ENABLE CLUSTER AUTOSCALER
 #---------------------------------------------------------#
-cluster_autoscaler_enable       = true
+cluster_autoscaler_enable       = false
 cluster_autoscaler_image_tag    = "v1.20.0"
 cluster_autoscaler_helm_version = "9.9.2"
 
@@ -327,7 +327,7 @@ aws_for_fluent_bit_helm_chart_version = "0.1.11"
 #---------------------------------------------------------#
 # ENABLE TRAEFIK INGRESS CONTROLLER
 #---------------------------------------------------------#
-traefik_ingress_controller_enable = true
+traefik_ingress_controller_enable = false
 traefik_helm_chart_version        = "10.0.0"
 traefik_image_tag                 = "v2.4.9"
 

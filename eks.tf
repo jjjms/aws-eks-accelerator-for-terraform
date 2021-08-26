@@ -50,6 +50,7 @@ resource "aws_kms_key" "eks" {
 
 module "eks" {
   create_eks      = var.create_eks
+  manage_aws_auth = false
   source          = "terraform-aws-modules/eks/aws"
   version         = "17.1.0"
   cluster_name    = module.eks-label.id
@@ -63,6 +64,8 @@ module "eks" {
   enable_irsa                     = var.enable_irsa
   kubeconfig_output_path          = "./kubeconfig/"
 
+  tags = module.eks-label.tags
+
   cluster_enabled_log_types = var.enabled_cluster_log_types
 
   cluster_encryption_config = [
@@ -73,11 +76,14 @@ module "eks" {
     }
   ]
 
-  map_roles    = local.common_roles
-  map_users    = var.map_users
-  map_accounts = var.map_accounts
+  #############################END OF EKS CLUSTER MODULE #############################################################
 
-  tags = module.eks-label.tags
+  # TODO handle these in aws-ia TF module
+  //  map_roles    = local.common_roles
+  //  map_users    = var.map_users
+  //  map_accounts = var.map_accounts
+
+
 
   # TODO Create a new Self-Managed Node group and remove worker_create_cluster_primary_security_group_rules and worker_groups_launch_template
   #----------------------------------------------------------------------------------
@@ -92,7 +98,7 @@ module "eks" {
     name     = var.self_managed_nodegroup_name
     platform = local.self_managed_node_platform
 
-    # Use custom AMI, user data script template, and its parameters, if provided in input. 
+    # Use custom AMI, user data script template, and its parameters, if provided in input.
     # Otherwise, use default EKS-optimized AMI, user data script for Windows / Linux.
     ami_id                       = var.self_managed_node_ami_id != "" ? var.self_managed_node_ami_id : var.enable_windows_support ? data.aws_ami.windows2019core.id : data.aws_ami.amazonlinux2eks.id
     userdata_template_file       = var.self_managed_node_userdata_template_file != "" ? var.self_managed_node_userdata_template_file : var.enable_windows_support ? "./templates/userdata-windows.tpl" : "./templates/userdata-amazonlinux2eks.tpl"

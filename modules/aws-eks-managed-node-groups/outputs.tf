@@ -18,18 +18,27 @@
 
 output "node_groups" {
   description = "Outputs from EKS node groups "
-  value       = aws_eks_node_group.managed_ng
+  value       = coalescelist(aws_eks_node_group.managed_ng[*].id, [""])[0]
+  //  value       = [for f in aws_eks_node_group.managed_ng : f.id]
 }
 
-output "mg_linux_role" {
+output "mg_linux_roles" {
   description = "Linux node IAM role"
-  value       = aws_iam_role.mg_linux.id
+  //  value = [
+  //  for role in aws_iam_role.mg_linux.*.arn : {
+  //    worker_role_arn = role
+  //    platform        = "linux"
+  //  }
+  //  ]
+  value = coalescelist(aws_iam_role.mg_linux[*].arn, [""])[0]
 }
 
-output "launch_template_id" {
-  value = aws_launch_template.managed_node_groups.id
+output "launch_template_ids" {
+  value = aws_launch_template.managed_node_groups.*.id
+  //  value = [for f in aws_launch_template.managed_node_groups : f.id]
 }
 
-output "launch_template_latest_version" {
-  value = aws_launch_template.managed_node_groups.latest_version
+output "launch_template_latest_versions" {
+  value = aws_launch_template.managed_node_groups.*.default_version
+  //  value = [for f in aws_launch_template.managed_node_groups : f.id]
 }
