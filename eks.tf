@@ -78,12 +78,10 @@ module "eks" {
 
   #############################END OF EKS CLUSTER MODULE #############################################################
 
-  # TODO handle these in aws-ia TF module
+  # TODO handle this in aws-ia TF EKS module
   //  map_roles    = local.common_roles
   //  map_users    = var.map_users
   //  map_accounts = var.map_accounts
-
-
 
   # TODO Create a new Self-Managed Node group and remove worker_create_cluster_primary_security_group_rules and worker_groups_launch_template
   #----------------------------------------------------------------------------------
@@ -98,7 +96,7 @@ module "eks" {
     name     = var.self_managed_nodegroup_name
     platform = local.self_managed_node_platform
 
-    # Use custom AMI, user data script template, and its parameters, if provided in input.
+    # Use custom AMI, user data script template, and its parameters, if provided in input. 
     # Otherwise, use default EKS-optimized AMI, user data script for Windows / Linux.
     ami_id                       = var.self_managed_node_ami_id != "" ? var.self_managed_node_ami_id : var.enable_windows_support ? data.aws_ami.windows2019core.id : data.aws_ami.amazonlinux2eks.id
     userdata_template_file       = var.self_managed_node_userdata_template_file != "" ? var.self_managed_node_userdata_template_file : var.enable_windows_support ? "./templates/userdata-windows.tpl" : "./templates/userdata-amazonlinux2eks.tpl"
@@ -127,49 +125,17 @@ module "eks" {
     }] : []
   }] : []
 
-  # TODO Create a new Fargate module and replace the below section
-  #----------------------------------------------------------------------------------
-  # Fargate profile
-  #----------------------------------------------------------------------------------
-  fargate_profiles = var.enable_fargate ? {
-    fg-ns-default = {
-      name = var.fargate_profile_namespace
-
-      subnets = var.create_vpc == false ? var.private_subnet_ids : module.vpc.private_subnets
-
-      selectors = [
-        {
-          namespace = "kube-system"
-          labels = {
-            k8s-app = "kube-dns"
-          }
-        },
-        {
-          namespace = var.fargate_profile_namespace
-          labels = {
-            WorkerType = "fargate"
-          }
-        }
-      ]
-      tags = {
-        Environment = var.environment
-        Zone        = var.zone
-        worker_type = "fargate"
-      }
-    }
-  } : {}
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MANAGED NODE GROUPS
 # ---------------------------------------------------------------------------------------------------------------------
-
-
 module "managed-node-groups" {
   for_each = var.managed_node_groups
 
-  source                    = "./modules/aws-eks-managed-node-groups"
-  managed_node_groups       = each.value
+  source     = "./modules/aws-eks-managed-node-groups"
+  managed_ng = each.value
+
   eks_cluster_name          = module.eks.cluster_id
   private_subnet_ids        = var.create_vpc == false ? var.private_subnet_ids : module.vpc.private_subnets
   public_subnet_ids         = var.create_vpc == false ? var.public_subnet_ids : module.vpc.public_subnets
@@ -178,6 +144,24 @@ module "managed-node-groups" {
   cluster_autoscaler_enable = var.cluster_autoscaler_enable
   worker_security_group_id  = module.eks.worker_security_group_id # TODO Create New SecGroup for each node group
   tags                      = module.eks-label.tags
+
+  depends_on = [module.eks]
+
+}
+# ---------------------------------------------------------------------------------------------------------------------
+# FARGATE PROFILES
+# ---------------------------------------------------------------------------------------------------------------------
+module "fargate-profiles" {
+  for_each = length(var.fargate_profiles) > 0 && var.enable_fargate ? var.fargate_profiles : {}
+
+  source          = "./modules/aws-eks-fargate"
+  fargate_profile = each.value
+
+  eks_cluster_name   = module.eks.cluster_id
+  private_subnet_ids = var.create_vpc == false ? var.private_subnet_ids : module.vpc.private_subnets
+  public_subnet_ids  = var.create_vpc == false ? var.public_subnet_ids : module.vpc.public_subnets
+
+  tags = module.eks-label.tags
 
   depends_on = [module.eks]
 
@@ -195,11 +179,9 @@ module "rbac" {
 
   depends_on = [module.eks]
 }
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Windows Support
 # ---------------------------------------------------------------------------------------------------------------------
-
 # Create IAM resources for Linux and Windows node roles, instance profiles
 # This is needed due to this issue: https://github.com/terraform-aws-modules/terraform-aws-eks/issues/1456
 module "windows_support_iam" {
@@ -222,7 +204,6 @@ module "windows_support_vpc_resources" {
 
   depends_on = [module.eks]
 }
-
 # ---------------------------------------------------------------------------------------------------------------------
 # AWS EKS Add-ons (VPC CNI, CoreDNS, KubeProxy )
 # ---------------------------------------------------------------------------------------------------------------------
@@ -245,7 +226,7 @@ module "aws-eks-addon" {
 # IAM Module
 # ---------------------------------------------------------------------------------------------------------------------
 module "iam" {
-  # count        = var.create_eks ? 1 : 0
+  //  count        = var.create_eks ? 1 : 0
   source                    = "./modules/iam"
   environment               = var.environment
   tenant                    = var.tenant
@@ -254,7 +235,6 @@ module "iam" {
   cluster_autoscaler_enable = var.cluster_autoscaler_enable
 
 }
-
 # ---------------------------------------------------------------------------------------------------------------------
 # AWS Managed Prometheus Module
 # ---------------------------------------------------------------------------------------------------------------------
@@ -272,13 +252,11 @@ module "aws_managed_prometheus" {
   service_account_amp_query_name  = local.service_account_amp_query_name
   amp_workspace_name              = local.amp_workspace_name
 }
-
 # ---------------------------------------------------------------------------------------------------------------------
 # S3 BUCKET MODULE
 # ---------------------------------------------------------------------------------------------------------------------
-
 module "s3" {
-  # count        = var.create_eks ? 1 : 0
+  //  count        = var.create_eks ? 1 : 0
   source         = "./modules/s3"
   s3_bucket_name = "${var.tenant}-${var.environment}-${var.zone}-elb-accesslogs-${data.aws_caller_identity.current.account_id}"
   account_id     = data.aws_caller_identity.current.account_id

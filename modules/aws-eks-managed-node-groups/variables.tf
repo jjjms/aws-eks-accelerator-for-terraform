@@ -65,7 +65,7 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-variable "managed_node_groups" {
+variable "managed_ng" {
   description = "Map of maps of `eks_node_groups` to create"
   type        = any
   default     = {}

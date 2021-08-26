@@ -16,20 +16,17 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-data "aws_caller_identity" "current" {}
 
-data "aws_partition" "current" {}
+resource "aws_iam_role" "fargate" {
+  name                  = "${var.eks_cluster_name}-${local.fargate_profiles["fargate_profile_name"]}"
+  assume_role_policy    = data.aws_iam_policy_document.fargate_assume_role_policy.json
+  force_detach_policies = true
+  tags                  = var.tags
 
-data "aws_iam_policy_document" "fargate_assume_role_policy" {
-  statement {
-    sid = "EKSFargateAssumeRole"
-
-    actions = [
-      "sts:AssumeRole",
-    ]
-    principals {
-      type        = "Service"
-      identifiers = ["eks-fargate-pods.amazonaws.com"]
-    }
-  }
 }
+
+resource "aws_iam_role_policy_attachment" "fargate-AmazonEKSFargatePodExecutionRolePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+  role       = aws_iam_role.fargate.name
+}
+

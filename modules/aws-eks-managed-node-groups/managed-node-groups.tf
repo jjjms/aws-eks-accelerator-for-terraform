@@ -17,6 +17,7 @@
  */
 
 resource "aws_eks_node_group" "managed_ng" {
+
   cluster_name           = var.eks_cluster_name
   node_group_name_prefix = local.managed_node_group["node_group_name"]
   //   node_group_name = ""     # Optional when node_group_name_prefix is defined
@@ -70,9 +71,7 @@ resource "aws_eks_node_group" "managed_ng" {
 
   labels = local.managed_node_group["k8s_labels"]
 
-  tags = merge(
-    var.tags, local.managed_node_group["additional_tags"],
-  )
+  tags = merge(var.tags, local.managed_node_group["additional_tags"])
 
   timeouts {
     create = "2h"

@@ -17,7 +17,7 @@
  */
 
 locals {
-  default_managed_node_group = {
+  default_managed_ng = {
     node_group_name               = "m4_on_demand"
     desired_size                  = "1"
     instance_types                = "m4.large"
@@ -52,9 +52,9 @@ locals {
 
   }
   managed_node_group = merge(
-    local.default_managed_node_group,
-    var.managed_node_groups,
-    { subnet_ids = var.managed_node_groups["subnet_ids"] == [] ? var.managed_node_groups["subnet_type"] == "public" ? var.public_subnet_ids : var.private_subnet_ids : var.managed_node_groups["subnet_ids"] }
+    local.default_managed_ng,
+    var.managed_ng,
+    { subnet_ids = var.managed_ng["subnet_ids"] == [] ? var.managed_ng["subnet_type"] == "public" ? var.public_subnet_ids : var.private_subnet_ids : var.managed_ng["subnet_ids"] }
   )
 
 }

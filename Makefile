@@ -28,12 +28,12 @@ clean:
 
 .PHONY: tf-plan-eks
 tf-plan-eks:
-	export AWS_REGION=${region} && terraform init /live/${env}/${region}/${account}/${subenv}/backend.conf -reconfigure && terraform validate && terraform plan -var-file ../live/${env}/${region}/${account}/${subenv}/base.tfvars
+	export AWS_REGION=${region} && terraform init -backend-config ./live/${env}/${region}/${account}/${subenv}/backend.conf -reconfigure && terraform validate && terraform plan -var-file ./live/${env}/${region}/${account}/${subenv}/base.tfvars
 
 .PHONY: tf-apply-eks
 tf-apply-eks:
-	export AWS_REGION=${region} && terraform init /live/${env}/${region}/${account}/${subenv}/backend.conf -reconfigure && terraform validate && terraform apply -var-file ../live/${env}/${region}/${account}/${subenv}/base.tfvars -auto-approve
+	export AWS_REGION=${region} && terraform init -backend-config ./live/${env}/${region}/${account}/${subenv}/backend.conf -reconfigure && terraform validate && terraform apply -var-file ./live/${env}/${region}/${account}/${subenv}/base.tfvars -auto-approve
 
 .PHONY: tf-destroy-eks
 tf-destroy-eks:
-	export AWS_REGION=${region} && terraform init /live/${env}/${region}/${account}/${subenv}/backend.conf -reconfigure && terraform validate && terraform destroy -var-file ../live/${env}/${region}/${account}/${subenv}/base.tfvars -auto-approve
+	export AWS_REGION=${region} && terraform init -backend-config ./live/${env}/${region}/${account}/${subenv}/backend.conf -reconfigure && terraform validate && terraform destroy -var-file ./live/${env}/${region}/${account}/${subenv}/base.tfvars -auto-approve
